@@ -13,7 +13,7 @@ library(plyr)
 library(reshape2)
 library(lubridate)
 # #============================================================================================================
-# Función para calcular la edad de una persona:
+# Función para calcular la edad del estudiante:
 calculo_edad<-function(from, to) 
                {
               to=Sys.Date()
