@@ -37,6 +37,8 @@ inscritos_1<-as.data.frame(
   lapply(inscritos_1, function(x)
     if(is.character(x))
     {
+      trimws(x)
+      gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
     }
     else
@@ -44,7 +46,6 @@ inscritos_1<-as.data.frame(
       x
     }),
   stringsAsFactors=F)
-
 
 load("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/inscritos_2.RData")
 inscritos_2<-as.data.frame(lapply(inscritos_2,function(x) if(is.character(x))
@@ -54,6 +55,8 @@ inscritos_2<-as.data.frame(
   lapply(inscritos_2, function(x)
     if(is.character(x))
     {
+      trimws(x)
+      gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
     }
     else
@@ -71,6 +74,8 @@ inscritos_3<-as.data.frame(
   lapply(inscritos_3, function(x)
     if(is.character(x))
     {
+      trimws(x)
+      gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
     }
     else
@@ -133,7 +138,8 @@ ins_1<-inscritos_1 %>%
                                  "dpa_residencia"="domicilio",
                                  "dpa_telefono"="telefono",
                                  "dpa_celular"="movil",
-                                 "usu_email"="email")) %>% 
+                                 "usu_email"="email",
+                                 "rinde_enes"="rinde_examen")) %>% 
                   mutate(#Variables que se crean para identificar al colegio de procedencia:
                     edad=calculo_edad(fecha_nacimiento),#32
                     #------VARIABLES DEL PER13 AL PER14:
@@ -196,7 +202,8 @@ ins_2<-inscritos_2 %>%
                                  "dpa_residencia"="domicilio",
                                  "dpa_telefono"="telefono",
                                  "dpa_celular"="movil",
-                                 "usu_email"="email")) %>% 
+                                 "usu_email"="email",
+                                 "rinde_enes"="rinde_examen")) %>% 
                   mutate(#Variables que se crean para identificar al colegio de procedencia:
                     edad=calculo_edad(fecha_nacimiento),#32
                     #------VARIABLES DEL PER13 AL PER14:
@@ -278,26 +285,24 @@ ins_3<-inscritos_3 %>%
                                "cae_nota_enes"="nota_postula",
                                "ins_hogar_bdh"="bdh",
                                "ins_cc_beneficiario"="ced_beneficiario_bdh",
-                               "cae_rinde_examen"="rinde_enes",
+                               "cae_rinde_examen"="rinde_examen",
                                "pais_nacimiento"="pais_nace"))
-ins_4<-inscritos_p15 %>% 
+ins_4<-inscritos_p15 %>%
        mutate(#Variables que se crean para identificar al colegio de procedencia:
               #------VARIABLES DEL PER2 AL PER12:
               nota_verbal="",
               nota_logica="",
               nota_abstracta="",
               prq_id_nace="",
-              nota_postula="",
               bdh="",
               ced_beneficiario_bdh="",
-              rinde_enes="",
               pais_nace="",
               ued_id="",
               ued_nombre="",
               ued_tipo="",
               codigo_parroquia_ue="",
               prd_jornada="",
-              edad=calculo_edad(usu_fecha_nac)) %>% 
+              edad=calculo_edad(usu_fecha_nac)) %>%
               mutate(domicilio=paste(ins_calle_principal,
                                      ins_barrio_sector,
                                      ins_num_casa,
@@ -326,7 +331,7 @@ ins_4<-inscritos_p15 %>%
                      usu_email,#21
                      usu_estado_civil,#22
                      ins_poblacion,#23
-                     rinde_enes,#24
+                     rinde_examen,#24
                      ced_beneficiario_bdh,#25
                      bdh,#26
                      #Variables del colegio de procedencia:
@@ -367,15 +372,12 @@ ins_4<-inscritos_p15 %>%
 
 # Unificación de los inscritos del per2 al per15
 
-inscritos<-rbind(ins_1,ins_2,ins_3,ins_4)
+inscritos<-rbind(ins_1,ins_2,ins_3)
 
 inscritos<-inscritos %>% distinct()
 
+#===============================================================================================
 
-
-
-
-
-
+muestra<-inscritos %>% sample_n(1000)
 
 
