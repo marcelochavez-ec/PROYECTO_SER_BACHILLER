@@ -84,6 +84,24 @@ inscritos_3<-as.data.frame(
     }),
   stringsAsFactors=F)
 
+load("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/inscritos_p15.RData")
+inscritos_p15<-as.data.frame(lapply(inscritos_p15,function(x) if(is.character(x))
+             iconv(x,"UTF-8","UTF-8") else x),stringsAsFactors=F)
+
+inscritos_p15<-as.data.frame(
+  lapply(inscritos_p15, function(x)
+    if(is.character(x))
+    {
+      trimws(x)
+      gsub("^$","SIN REGISTRO",x)
+      ifelse(is.na(x),"SIN REGISTRO",x)
+    }
+    else
+    {
+      x
+    }),
+  stringsAsFactors=F)
+
 #============================================================================================================
 # SELECCIÓN DE VARIABLES:
 
@@ -143,12 +161,12 @@ ins_1<-inscritos_1 %>%
                   mutate(#Variables que se crean para identificar al colegio de procedencia:
                     edad=calculo_edad(fecha_nacimiento),#32
                     #------VARIABLES DEL PER13 AL PER14:
-                    escolaridad="",#33
-                    ued_id="",#34
-                    ued_amie="",#35
-                    prd_jornada="",#36
-                    codigo_parroquia_ue="",#37
-                    estado_civil="")#38
+                    escolaridad="SIN REGISTRO",#33
+                    ued_id="SIN REGISTRO",#34
+                    ued_amie="SIN REGISTRO",#35
+                    prd_jornada="SIN REGISTRO",#36
+                    codigo_parroquia_ue="SIN REGISTRO",#37
+                    estado_civil="SIN REGISTRO")#38
 
 
 ins_2<-inscritos_2 %>%
@@ -207,12 +225,12 @@ ins_2<-inscritos_2 %>%
                   mutate(#Variables que se crean para identificar al colegio de procedencia:
                     edad=calculo_edad(fecha_nacimiento),#32
                     #------VARIABLES DEL PER13 AL PER14:
-                    escolaridad="",#33
-                    ued_id="",#34
-                    ued_amie="",#35
-                    prd_jornada="",#36
-                    codigo_parroquia_ue="",#37
-                    estado_civil="")#38
+                    escolaridad="SIN REGISTRO",#33
+                    ued_id="SIN REGISTRO",#34
+                    ued_amie="SIN REGISTRO",#35
+                    prd_jornada="SIN REGISTRO",#36
+                    codigo_parroquia_ue="SIN REGISTRO",#37
+                    estado_civil="SIN REGISTRO")#38
 
 
 ins_3<-inscritos_3 %>% 
@@ -221,9 +239,9 @@ ins_3<-inscritos_3 %>%
        nota_verbal="",
        nota_logica="",
        nota_abstracta="",
-       prq_id_nace="",
+       prq_id_nace="SIN REGISTRO",
        edad=calculo_edad(fecha_nacimiento),
-       es_discapacitado="") %>% 
+       es_discapacitado="SIN REGISTRO") %>% 
        mutate(domicilio=paste(ins_calle_principal,
                               ins_calle_secundaria,
                               ins_barrio_sector,
@@ -293,15 +311,15 @@ ins_4<-inscritos_p15 %>%
               nota_verbal="",
               nota_logica="",
               nota_abstracta="",
-              prq_id_nace="",
-              bdh="",
-              ced_beneficiario_bdh="",
-              pais_nace="",
-              ued_id="",
-              ued_nombre="",
-              ued_tipo="",
-              codigo_parroquia_ue="",
-              prd_jornada="",
+              prq_id_nace="SIN REGISTRO",
+              bdh="SIN REGISTRO",
+              ced_beneficiario_bdh="SIN REGISTRO",
+              pais_nace="SIN REGISTRO",
+              ued_id="SIN REGISTRO",
+              ued_nombre="SIN REGISTRO",
+              ued_tipo="SIN REGISTRO",
+              codigo_parroquia_ue="SIN REGISTRO",
+              prd_jornada="SIN REGISTRO",
               edad=calculo_edad(usu_fecha_nac)) %>%
               mutate(domicilio=paste(ins_calle_principal,
                                      ins_barrio_sector,
@@ -372,12 +390,52 @@ ins_4<-inscritos_p15 %>%
 
 # Unificación de los inscritos del per2 al per15
 
-inscritos<-rbind(ins_1,ins_2,ins_3)
-
-inscritos<-inscritos %>% distinct()
+inscritos_p2_p15<-rbind(ins_1,ins_2,ins_3,ins_4)
 
 #===============================================================================================
+# Aki en esta sección vamos a recodificar variable por variable:
 
-muestra<-inscritos %>% sample_n(1000)
+tipo_documento<-data.frame(table(inscritos_p2_p15$tipo_documento))
+sexo <- data.frame(table(inscritos_p2_p15$sexo))
+autoidentificacion <- data.frame(table(inscritos_p2_p15$autoidentificacion))
+pueblos_nacionalidades <- data.frame(table(inscritos_p2_p15$pueblos_nacionalidades))
+rinde_examen <- data.frame(table(inscritos_p2_p15$rinde_examen))
+pais_reside <- data.frame(table(inscritos_p2_p15$pais_reside))
+pais_nace <- data.frame(table(inscritos_p2_p15$pais_nace))
+es_discapacitado <- data.frame(table(inscritos_p2_p15$es_discapacitado))
+
+prueba_inscritos <- inscritos_p2_p15 %>% 
+                    mutate(sexo=recode(sexo,
+                                       "F"="MUJERES",
+                                       "M"="HOMBRES",
+                                       "m"="HOMBRES",
+                                       "HOMBRE"="HOMBRES",
+                                       "MUJER"="MUJERES"),
+                          autoidentificacion=recode(toupper(autoidentificacion),
+                                             " "="SIN REGISTRO",
+                                             "Afrodecendiente"="AFROECUATORIANOS",
+                                             "AFRODECENDIENTE"="AFROECUATORIANOS",
+                                             "AFROECUATORIANO/A"="AFROECUATORIANOS",
+                                             "AFRODESCENDIENTE"="AFROECUATORIANOS",
+                                             "BLANCO/A"="BLANCOS",
+                                             "BLANCO"="BLANCOS",
+                                             "INDÍGENA"="INDÍGENAS",
+                                             "MESTIZO/A"="MESTIZOS",
+                                             "MESTIZO"="MESTIZOS",
+                                             "MONTUBIO/A"="MONTUBIOS",
+                                             "MONTUBIO"="MONTUBIOS",
+                                             "MULATO"="AFROECUATORIANOS",
+                                             "MULATO/A"="AFROECUATORIANOS",
+                                             "NEGRO/A"="AFROECUATORIANOS",
+                                             "NEGRO"="AFROECUATORIANOS",
+                                             "AFRODESCENDIENTE"="AFROECUATORIANOS",
+                                             "MONTUVIO"="MONTUBIOS",
+                                             "MONTUVIO/A"="MONTUBIOS",
+                                             "OTRO/A"="SIN REGISTRO",
+                                             "OTRO"="SIN REGISTRO"))
+
+
+
+
 
 
