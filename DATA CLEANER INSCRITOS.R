@@ -12,7 +12,11 @@ library(dplyr)
 library(plyr)
 library(reshape2)
 library(lubridate)
-# #============================================================================================================
+#============================================================================================================
+senescyt_bi<-dbConnect("PostgreSQL", dbname="senescyt_bi",
+                       host="localhost",port=5432,
+                       user="postgres",password="postgres")
+#============================================================================================================
 # Función para calcular la edad del estudiante:
 calculo_edad<-function(from, to) 
                {
@@ -40,6 +44,7 @@ inscritos_1<-as.data.frame(
       trimws(x)
       gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
+      toupper(x)
     }
     else
     {
@@ -58,6 +63,7 @@ inscritos_2<-as.data.frame(
       trimws(x)
       gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
+      toupper(x)
     }
     else
     {
@@ -77,6 +83,7 @@ inscritos_3<-as.data.frame(
       trimws(x)
       gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
+      toupper(x)
     }
     else
     {
@@ -95,6 +102,7 @@ inscritos_p15<-as.data.frame(
       trimws(x)
       gsub("^$","SIN REGISTRO",x)
       ifelse(is.na(x),"SIN REGISTRO",x)
+      toupper(x)
     }
     else
     {
@@ -167,7 +175,6 @@ ins_1<-inscritos_1 %>%
                     prd_jornada="SIN REGISTRO",#36
                     codigo_parroquia_ue="SIN REGISTRO",#37
                     estado_civil="SIN REGISTRO")#38
-
 
 ins_2<-inscritos_2 %>%
                   select(
@@ -247,7 +254,7 @@ ins_3<-inscritos_3 %>%
                               ins_barrio_sector,
                               ins_referencia,
                               ins_num_casa,
-                              sep=" | ")) %>%
+                              sep="|")) %>%
                 select(#Variables del estudiante:
                   per_id,#1
                   codigo_parroquia_resid,#2
@@ -324,7 +331,7 @@ ins_4<-inscritos_p15 %>%
               mutate(domicilio=paste(ins_calle_principal,
                                      ins_barrio_sector,
                                      ins_num_casa,
-                                     sep=" | ")) %>%
+                                     sep="|")) %>%
               select(#Variables del estudiante:
                      per_id,#1
                      cod_parroquia_reside,#2
@@ -392,50 +399,232 @@ ins_4<-inscritos_p15 %>%
 
 inscritos_p2_p15<-rbind(ins_1,ins_2,ins_3,ins_4)
 
+inscritos_p2_p15<-as.data.frame(
+  lapply(inscritos_p2_p15, function(x)
+    if(is.character(x))
+    {
+      trimws(x)
+      gsub("^$","SIN REGISTRO",x)
+      ifelse(is.na(x),"SIN REGISTRO",x)
+      toupper(x)
+    }
+    else
+    {
+      x
+    }),
+  stringsAsFactors=F)
+
 #===============================================================================================
 # Aki en esta sección vamos a recodificar variable por variable:
 
-tipo_documento<-data.frame(table(inscritos_p2_p15$tipo_documento))
-sexo <- data.frame(table(inscritos_p2_p15$sexo))
-autoidentificacion <- data.frame(table(inscritos_p2_p15$autoidentificacion))
-pueblos_nacionalidades <- data.frame(table(inscritos_p2_p15$pueblos_nacionalidades))
-rinde_examen <- data.frame(table(inscritos_p2_p15$rinde_examen))
-pais_reside <- data.frame(table(inscritos_p2_p15$pais_reside))
-pais_nace <- data.frame(table(inscritos_p2_p15$pais_nace))
-es_discapacitado <- data.frame(table(inscritos_p2_p15$es_discapacitado))
+inscritos_p2_p15 <- inscritos_p2_p15 %>% 
+  mutate(sexo=trimws(sexo)) %>% 
+  mutate(sexo=recode(sexo,
+                     "F"="MUJERES",
+                     "M"="HOMBRES",
+                     "m"="HOMBRES",
+                     "HOMBRE"="HOMBRES",
+                     "MUJER"="MUJERES"),
+         autoidentificacion=recode(trimws(autoidentificacion),
+                                   "Afrodecendiente"="AFROECUATORIANOS",
+                                   "AFRODECENDIENTE"="AFROECUATORIANOS",
+                                   "AFROECUATORIANO/A"="AFROECUATORIANOS",
+                                   "AFRODESCENDIENTE"="AFROECUATORIANOS",
+                                   "BLANCO/A"="BLANCOS",
+                                   "BLANCO"="BLANCOS",
+                                   "INDÍGENA"="INDÍGENAS",
+                                   "MESTIZO/A"="MESTIZOS",
+                                   "MESTIZO"="MESTIZOS",
+                                   "MONTUBIO/A"="MONTUBIOS",
+                                   "MONTUBIO"="MONTUBIOS",
+                                   "MULATO"="AFROECUATORIANOS",
+                                   "MULATO/A"="AFROECUATORIANOS",
+                                   "NEGRO/A"="AFROECUATORIANOS",
+                                   "NEGRO"="AFROECUATORIANOS",
+                                   "AFRODESCENDIENTE"="AFROECUATORIANOS",
+                                   "MONTUVIO"="MONTUBIOS",
+                                   "MONTUVIO/A"="MONTUBIOS",
+                                   "OTRO/A"="SIN REGISTRO",
+                                   "OTRO"="SIN REGISTRO")) %>% 
+  mutate(pueblos_nacionalidades=trimws(gsub("NACIONALIDAD","",pueblos_nacionalidades))) %>% 
+  mutate(pueblos_nacionalidades=trimws(gsub("PUEBLO","",pueblos_nacionalidades))) %>% 
+  mutate(autoidentificacion=gsub("^$","SIN REGISTRO",autoidentificacion)) %>% 
+  mutate(autoidentificacion=ifelse(is.na(autoidentificacion),"SIN REGISTRO",
+                                   autoidentificacion)) %>% 
+  mutate(pueblos_nacionalidades=gsub("^$","SIN REGISTRO",pueblos_nacionalidades)) %>% 
+  mutate(pueblos_nacionalidades=recode(pueblos_nacionalidades,
+                                       "AWA"="AWÁ",
+                                       "COFAN"="COFÁN",
+                                       "KICHWA AMAZONIA"="KICHWA",
+                                       "KICHWA DE LA SIERRA"="KICHWA",
+                                       "KICWA"="KICHWA",
+                                       "NINGUNA"="SIN REGISTRO",
+                                       "OTRO"="SIN REGISTRO",
+                                       "TSACHILA"="TSÁCHILA",
+                                       "WAORANI"="HUAORANI",
+                                       "WARANKA"="WARANCA",
+                                       "ZAPARA"="ZÁPARA",
+                                       "SALASAKA"="SALASACA")) %>% 
+  mutate(pueblos_nacionalidades=ifelse(is.na(pueblos_nacionalidades),
+                                       "SIN REGISTRO",
+                                       pueblos_nacionalidades)) %>% 
+  mutate(pueblos_nacionalidades=ifelse(autoidentificacion!="INDÍGENAS", 
+                                       "NO APLICA",pueblos_nacionalidades)) %>% 
+  mutate(rinde_examen=trimws(rinde_examen)) %>% 
+  mutate(rinde_examen=ifelse(is.na(rinde_examen),"SIN REGISTRO",rinde_examen)) %>% 
+  mutate(rinde_examen=recode(rinde_examen,
+                             "M"="SI",
+                             "N"="SI")) %>% 
+  mutate(pais_reside=trimws(pais_reside)) %>% 
+  mutate(pais_reside=ifelse(is.na(pais_reside),"SIN REGISTRO",
+                            pais_reside)) %>% 
+  mutate(pais_reside=recode(pais_reside,
+                            "OTRAS NACIONES DE AMÉRICA"="SIN REGISTRO",
+                            "SANTA ELENA"="SIN REGISTRO",
+                            "ALEMANIA, REPÚBLICA DEMOCRÁTICA"="SIN REGISTRO",
+                            "OTRO PAIS"="SIN REGISTRO",
+                            "PERU"="PERÚ",
+                            "CHINA REPÚBLICA POPULAR (PEKIN)"="CHINA")) %>% 
+  mutate(pais_nace=trimws(pais_nace)) %>% 
+  mutate(pais_nace=ifelse(is.na(pais_nace),"SIN REGISTRO",
+                          pais_nace)) %>% 
+  mutate(pais_nace=recode(pais_nace,
+                          "CHINA (DESAMBIGUACIÓN)"="CHINA",
+                          "CHINA REPÚBLICA POPULAR (PEKIN)"="CHINA",
+                          "KAZAJSTÁN"="KAZAJISTÁN",
+                          "DOMINICA"="REPÚBLICA DOMINICANA",
+                          "DOMINICANA, REPÚBLICA"="REPÚBLICA DOMINICANA",
+                          "OTRAS NACIONES DE AMÉRICA"="SIN REGISTRO",
+                          "PALESTINA (REGIÓN)"="PALESTINA",
+                          "PERU"="PERÚ",
+                          "RUSIA, FEDERACIÓN DE (UNIÓN SOVIÉTICA)"="RUSIA",
+                          "SANTA ELENA"="SIN REGISTRO")) %>% 
+  mutate(es_discapacitado=trimws(es_discapacitado)) %>% 
+  mutate(tipo_discapacidad=trimws(tipo_discapacidad)) %>% 
+  mutate(tipo_discapacidad=ifelse(is.na(tipo_discapacidad),
+                                  "NO APLICA",
+                                  tipo_discapacidad)) %>% 
+  mutate(tipo_discapacidad=recode(tipo_discapacidad,
+                                  "FISICA"="FÍSICA",
+                                  "FASICA"="FÍSICA",
+                                  "FA\u008dSICA"="FÍSICA",
+                                  "PSICOLOGICO"="PSICOSOCIAL",
+                                  "PSICOLÓGICA"="PSICOSOCIAL",
+                                  "PSICOLOGICO"="PSICOSOCIAL",
+                                  "SIN REGISTRO"="NO PRESENTA DISCAPACIDAD",
+                                  "NO APLICA"="NO PRESENTA DISCAPACIDAD")) %>% 
+  mutate(es_discapacitado=ifelse(tipo_discapacidad=="NO PRESENTA DISCAPACIDAD",
+                                 "NO PRESENTAN DISCAPACIDAD",
+                                 "SI PRESENTAN DISCAPACIDAD")) %>% 
+  mutate(prq_id_reside=trimws(prq_id_reside)) %>% 
+  mutate(prq_id_reside=ifelse(is.na(prq_id_reside),"SIN REGISTRO",prq_id_reside)) %>% 
+  mutate(prq_id_nace=trimws(prq_id_nace)) %>% 
+  mutate(prq_id_nace=ifelse(is.na(prq_id_nace),"SIN REGISTRO",prq_id_nace)) %>% 
+  mutate(grado_discapacidad=trimws(grado_discapacidad)) %>% 
+  mutate(grado_discapacidad=ifelse(is.na(grado_discapacidad),
+                                   "NO PRESENTAN DISCAPACIDAD",
+                                   grado_discapacidad)) %>% 
+  mutate(grado_discapacidad=ifelse(grado_discapacidad=="LEVE",
+                            30,
+                            ifelse(grado_discapacidad=="MODERADA",
+                            50,
+                            ifelse(grado_discapacidad=="MODERADO",
+                            50,
+                            ifelse(grado_discapacidad=="GRAVE",
+                            75,
+                            ifelse(grado_discapacidad=="MUY GRAVE",
+                            85,
+                            ifelse(grado_discapacidad=="SEVERA",
+                            85,
+                            ifelse(grado_discapacidad=="NO PRESENTA GRADO DISCAPACIDAD",
+                                   "NO PRESENTAN DISCAPACIDAD",
+                            grado_discapacidad)))))))) %>% 
+    mutate(grado_discapacidad=ifelse(es_discapacitado=="NO PRESENTAN DISCAPACIDAD",
+                                   "NO PRESENTAN DISCAPACIDAD",
+                                   grado_discapacidad)) %>%
+    mutate(grado_discapacidad_aux=ifelse(grado_discapacidad=="NO PRESENTAN DISCAPACIDAD",
+                                         "",grado_discapacidad)) %>% 
+    mutate(grado_discapacidad_aux=as.numeric(as.character(grado_discapacidad_aux))) %>%   
+    mutate(categoria_discapacidad=ifelse(grado_discapacidad_aux<=49,
+                                         "LEVE",
+                                  ifelse(grado_discapacidad_aux>=50 & 
+                                         grado_discapacidad_aux<=74,
+                                         "MODERADO",
+                                  ifelse(grado_discapacidad_aux>=75 &
+                                         grado_discapacidad_aux<=84,
+                                         "GRAVE",
+                                  ifelse(grado_discapacidad_aux>=85,
+                                         "MUY GRAVE",
+                                         grado_discapacidad_aux))))) %>% 
+    mutate(categoria_discapacidad=ifelse(is.na(categoria_discapacidad),
+                                         "NO PRESENTAN DISCAPACIDAD",
+                                         categoria_discapacidad)) %>% 
+    mutate(nro_carnet_conadis=ifelse(is.na(nro_carnet_conadis),
+                                     "SIN REGISTRO",
+                                     nro_carnet_conadis)) %>% 
+    mutate(domicilio=trimws(domicilio)) %>% 
+    mutate(domicilio=ifelse(domicilio=="NA|NA|NA|NA|NA",
+                            "SIN REGISTRO",
+                            domicilio)) %>% 
+    mutate(domicilio=ifelse(is.na(domicilio),
+                            "SIN REGISTRO",
+                            domicilio)) %>% 
+    mutate(domicilio=gsub('\\|NA\\|', '. ',domicilio)) %>% 
+    mutate(domicilio=gsub('\\|', '. ',domicilio)) %>% 
+    mutate(domicilio=recode(domicilio,
+           "SIN REGISTRO. SIN REGISTRO. SIN REGISTRO"="SIN REGISTRO")) %>% 
+  mutate(bdh=trimws(bdh)) %>% 
+  mutate(bdh=recode(bdh,"SÍ"="SI RECIBEN","S"="SI RECIBEN",
+                    "N"="NO RECIBEN")) %>% 
+  mutate(bdh=ifelse(bdh!=c("SI RECIBEN","NO RECIBEN"),"SIN REGISTRO",bdh)) %>% 
+  mutate(bdh=ifelse(is.na(bdh),"SIN REGISTRO",bdh)) %>% 
+  mutate(email=trimws(email)) %>% 
+  mutate(email=tolower(email)) %>% 
+  mutate(email=ifelse(is.na(email),"SIN REGISTRO",email)) %>% 
+  mutate(ued_nombre=trimws(ued_nombre)) %>% 
+  mutate(ued_nombre=ifelse(is.na(ued_nombre),"SIN REGISTRO",ued_nombre)) %>% 
+  mutate(ued_tipo=trimws(ued_tipo)) %>% 
+  mutate(ued_tipo=ifelse(is.na(ued_tipo),"SIN REGISTRO",ued_tipo)) %>% 
+  mutate(escolaridad=trimws(escolaridad)) %>% 
+  mutate(escolaridad=ifelse(is.na(escolaridad),"SIN REGISTRO",escolaridad)) %>% 
+  mutate(ued_id=trimws(ued_id)) %>% 
+  mutate(ued_id=ifelse(is.na(ued_id),"SIN REGISTRO",ued_id)) %>% 
+  mutate(ued_amie=trimws(ued_amie)) %>% 
+  mutate(ued_amie=ifelse(is.na(ued_amie),"SIN REGISTRO",ued_amie)) %>% 
+  mutate(prd_jornada=trimws(prd_jornada)) %>% 
+  mutate(prd_jornada=ifelse(is.na(prd_jornada),"SIN REGISTRO",prd_jornada)) %>% 
+  mutate(codigo_parroquia_ue=trimws(codigo_parroquia_ue)) %>% 
+  mutate(codigo_parroquia_ue=ifelse(is.na(codigo_parroquia_ue),
+        "SIN REGISTRO",codigo_parroquia_ue)) %>% 
+  mutate(estado_civil=trimws(estado_civil)) %>% 
+  mutate(estado_civil=ifelse(is.na(estado_civil),
+        "SIN REGISTRO",estado_civil)) %>% 
+  mutate(telefono=trimws(telefono)) %>% 
+  mutate(telefono=ifelse(is.na(telefono),"SIN REGISTRO",telefono)) %>% 
+  mutate(movil=trimws(movil)) %>% 
+  mutate(movil=ifelse(is.na(movil),"SIN REGISTRO",movil)) %>% 
+  mutate(prq_id_reside=trimws(prq_id_reside)) %>%   
+  mutate(prq_id_reside=recode(prq_id_reside,"-"="SIN REGISTRO")) %>% 
+  mutate(prq_id_nace=trimws(prq_id_nace)) %>%   
+  mutate(prq_id_nace=recode(prq_id_nace,"-"="SIN REGISTRO"))
 
-prueba_inscritos <- inscritos_p2_p15 %>% 
-                    mutate(sexo=recode(sexo,
-                                       "F"="MUJERES",
-                                       "M"="HOMBRES",
-                                       "m"="HOMBRES",
-                                       "HOMBRE"="HOMBRES",
-                                       "MUJER"="MUJERES"),
-                          autoidentificacion=recode(toupper(autoidentificacion),
-                                             " "="SIN REGISTRO",
-                                             "Afrodecendiente"="AFROECUATORIANOS",
-                                             "AFRODECENDIENTE"="AFROECUATORIANOS",
-                                             "AFROECUATORIANO/A"="AFROECUATORIANOS",
-                                             "AFRODESCENDIENTE"="AFROECUATORIANOS",
-                                             "BLANCO/A"="BLANCOS",
-                                             "BLANCO"="BLANCOS",
-                                             "INDÍGENA"="INDÍGENAS",
-                                             "MESTIZO/A"="MESTIZOS",
-                                             "MESTIZO"="MESTIZOS",
-                                             "MONTUBIO/A"="MONTUBIOS",
-                                             "MONTUBIO"="MONTUBIOS",
-                                             "MULATO"="AFROECUATORIANOS",
-                                             "MULATO/A"="AFROECUATORIANOS",
-                                             "NEGRO/A"="AFROECUATORIANOS",
-                                             "NEGRO"="AFROECUATORIANOS",
-                                             "AFRODESCENDIENTE"="AFROECUATORIANOS",
-                                             "MONTUVIO"="MONTUBIOS",
-                                             "MONTUVIO/A"="MONTUBIOS",
-                                             "OTRO/A"="SIN REGISTRO",
-                                             "OTRO"="SIN REGISTRO"))
+#===============================================================================================
+# Almacenamiento a la BDD PostgreSQL senescyt_bi:
+dbWriteTable(senescyt_bi,"inscritos_totales_p2_p15",
+             inscritos_p2_p15,overwrite=T,row.names=F)    
+#===============================================================================================
 
-
-
+pueblos_nacionalidades <- data.frame(table(prueba_inscritos$pueblos_nacionalidades))
+sexo <- data.frame(table(prueba_inscritos$sexo))
+autoidentificacion <- data.frame(table(prueba_inscritos$autoidentificacion))
+rinde_examen <- data.frame(table(prueba_inscritos$rinde_examen))
+pais_reside <- data.frame(table(prueba_inscritos$pais_reside))
+pais_nace <- data.frame(table(prueba_inscritos$pais_nace))
+es_discapacitado <- data.frame(table(prueba_inscritos$es_discapacitado))
+tipo_discapacidad <- data.frame(table(prueba_inscritos$tipo_discapacidad))
+grado_discapacidad <- data.frame(table(prueba_inscritos$grado_discapacidad))
+categoria_discapacidad <- data.frame(table(prueba_inscritos$categoria_discapacidad))
+nro_carnet_conadis <- data.frame(table(prueba_inscritos$nro_carnet_conadis))
 
 
 
