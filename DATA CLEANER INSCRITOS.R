@@ -414,6 +414,35 @@ inscritos_p2_p15<-as.data.frame(
     }),
   stringsAsFactors=F)
 
+inscritos_p2_p15$periodos<-recode(inscritos_p2_p15$per_id,
+                                    "2"="1er. Semestre 2012",
+                                    "3"="2do. Semestre 2012",
+                                    "4"="1er. Semestre 2013",
+                                    "5"="2do. Semestre 2013",
+                                    "6"="1er. Semestre 2014",
+                                    "7"="2do. Semestre 2014",
+                                    "8"="1er. Semestre 2015",
+                                    "9"="2do. Semestre 2015",
+                                    "10"="1er. Semestre 2016",
+                                    "12"="2do. Semestre 2016",
+                                    "13"="1er. Semestre 2017",
+                                    "14"="2do. Semestre 2017",
+                                    "15"="1er. Semestre 2018")
+
+inscritos_p2_p15$periodos<-factor(inscritos_p2_p15$periodos,
+                           levels=c("1er. Semestre 2012",
+                                    "2do. Semestre 2012",
+                                    "1er. Semestre 2013",
+                                    "2do. Semestre 2013",
+                                    "1er. Semestre 2014",
+                                    "2do. Semestre 2014",
+                                    "1er. Semestre 2015",
+                                    "2do. Semestre 2015",
+                                    "1er. Semestre 2016",
+                                    "2do. Semestre 2016",
+                                    "1er. Semestre 2017",
+                                    "2do. Semestre 2017",
+                                    "1er. Semestre 2018"))
 #===============================================================================================
 # Aki en esta sección vamos a recodificar variable por variable:
 
@@ -614,17 +643,14 @@ dbWriteTable(senescyt_bi,"inscritos_totales_p2_p15",
              inscritos_p2_p15,overwrite=T,row.names=F)    
 #===============================================================================================
 
-pueblos_nacionalidades <- data.frame(table(prueba_inscritos$pueblos_nacionalidades))
-sexo <- data.frame(table(prueba_inscritos$sexo))
-autoidentificacion <- data.frame(table(prueba_inscritos$autoidentificacion))
-rinde_examen <- data.frame(table(prueba_inscritos$rinde_examen))
-pais_reside <- data.frame(table(prueba_inscritos$pais_reside))
-pais_nace <- data.frame(table(prueba_inscritos$pais_nace))
-es_discapacitado <- data.frame(table(prueba_inscritos$es_discapacitado))
-tipo_discapacidad <- data.frame(table(prueba_inscritos$tipo_discapacidad))
-grado_discapacidad <- data.frame(table(prueba_inscritos$grado_discapacidad))
-categoria_discapacidad <- data.frame(table(prueba_inscritos$categoria_discapacidad))
-nro_carnet_conadis <- data.frame(table(prueba_inscritos$nro_carnet_conadis))
-
-
-
+# pueblos_nacionalidades <- data.frame(table(prueba_inscritos$pueblos_nacionalidades))
+# sexo <- data.frame(table(prueba_inscritos$sexo))
+# autoidentificacion <- data.frame(table(prueba_inscritos$autoidentificacion))
+# rinde_examen <- data.frame(table(prueba_inscritos$rinde_examen))
+# pais_reside <- data.frame(table(prueba_inscritos$pais_reside))
+# pais_nace <- data.frame(table(prueba_inscritos$pais_nace))
+# es_discapacitado <- data.frame(table(prueba_inscritos$es_discapacitado))
+# tipo_discapacidad <- data.frame(table(prueba_inscritos$tipo_discapacidad))
+# grado_discapacidad <- data.frame(table(prueba_inscritos$grado_discapacidad))
+# categoria_discapacidad <- data.frame(table(prueba_inscritos$categoria_discapacidad))
+# nro_carnet_conadis <- data.frame(table(prueba_inscritos$nro_carnet_conadis))
