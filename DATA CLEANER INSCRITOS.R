@@ -12,6 +12,12 @@ library(dplyr)
 library(plyr)
 library(reshape2)
 library(lubridate)
+library(xlsx)
+#============================================================================================================
+# LECTURA DE LAS ZONAS DE PLANIFICACIÓN SENPLADES Y SENESCYT:
+zonas<-read.xlsx2("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/DPA_ZONAS.xlsx",
+                  sheetName = "ZONAS",as.data.frame = T,header = T)
+zonas<-data.frame(lapply(zonas, as.character), stringsAsFactors=F)
 #============================================================================================================
 senescyt_bi<-dbConnect("PostgreSQL",dbname="senescyt_bi",
                   host="localhost",port=5432,user="postgres",
@@ -445,6 +451,12 @@ inscritos_p2_p15$periodos<-factor(inscritos_p2_p15$periodos,
                                            "2do. Semestre 2017",
                                            "1er. Semestre 2018"))
 #===============================================================================================
+# Join con las BDD de las
+inscritos_p2_p15$i01_reside<-substr(inscritos_p2_p15$prq_id_reside,1,2)
+inscritos_p2_p15$i02_reside<-substr(inscritos_p2_p15$prq_id_reside,1,4)
+inscritos_p2_p15 <- merge(inscritos_p2_p15,zonas,by=c("i01_reside","i02_reside"),
+                          all.x=T)
+#===============================================================================================
 # Aki en esta sección vamos a recodificar variable por variable:
 
 inscritos_p2_p15 <- inscritos_p2_p15 %>% 
@@ -647,10 +659,14 @@ inscritos_p2_p15 <- inscritos_p2_p15 %>%
   mutate(prq_id_reside=trimws(prq_id_reside)) %>%   
   mutate(prq_id_reside=recode(prq_id_reside,"-"="SIN REGISTRO")) %>% 
   mutate(prq_id_nace=trimws(prq_id_nace)) %>%   
-  mutate(prq_id_nace=recode(prq_id_nace,"-"="SIN REGISTRO"))
-
+  mutate(prq_id_nace=recode(prq_id_nace,"-"="SIN REGISTRO")) %>% 
+  select(-i01_reside,-i02_reside) %>% 
+  mutate(regiones=ifelse(is.na(prq_id_reside),"SIN REGISTRO",regiones),
+         zonas_senplades=ifelse(is.na(prq_id_reside),"SIN REGISTRO",zonas_senplades),
+         zonales_senescyt=ifelse(is.na(prq_id_reside),"SIN REGISTRO",zonales_senescyt))
+  
 #===============================================================================================
 # Almacenamiento a la BDD PostgreSQL senescyt_bi:
 dbWriteTable(senescyt_bi,"inscritos_totales_p2_p15",
-             inscritos_p2_p15,overwrite=T,row.names=F)    
+             inscritos_p2_p15,overwrite=T,row.names=F)
 #===============================================================================================
