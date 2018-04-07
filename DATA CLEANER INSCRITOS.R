@@ -13,7 +13,7 @@ library(plyr)
 library(reshape2)
 library(lubridate)
 #============================================================================================================
-prueba<-dbConnect("PostgreSQL",dbname="senescyt_bi",
+senescyt_bi<-dbConnect("PostgreSQL",dbname="senescyt_bi",
                   host="localhost",port=5432,user="postgres",
                   password="postgres")
 #============================================================================================================
@@ -33,7 +33,7 @@ calculo_edad<-function(from, to)
 # NOTA METODOLÓGICA: Dependerá del repositorio donde se este programando para cambiar el path de 
 # la lectura de las BDD
 
-load("/home/cgi/ser_bachiller/inscritos_1.RData")
+load("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/inscritos_1.RData")
 inscritos_1<-as.data.frame(lapply(inscritos_1,function(x) if(is.character(x))
   iconv(x,"UTF-8","UTF-8") else x),stringsAsFactors=F)
 
@@ -52,7 +52,7 @@ inscritos_1<-as.data.frame(
     }),
   stringsAsFactors=F)
 
-load("/home/cgi/ser_bachiller/inscritos_2.RData")
+load("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/inscritos_2.RData")
 inscritos_2<-as.data.frame(lapply(inscritos_2,function(x) if(is.character(x))
   iconv(x,"UTF-8","UTF-8") else x),stringsAsFactors=F)
 
@@ -72,7 +72,7 @@ inscritos_2<-as.data.frame(
   stringsAsFactors=F)
 
 
-load("/home/cgi/ser_bachiller/inscritos_3.RData")
+load("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/inscritos_3.RData")
 inscritos_3<-as.data.frame(lapply(inscritos_3,function(x) if(is.character(x))
   iconv(x,"UTF-8","UTF-8") else x),stringsAsFactors=F)
 
@@ -91,7 +91,7 @@ inscritos_3<-as.data.frame(
     }),
   stringsAsFactors=F)
 
-load("/home/cgi/ser_bachiller/inscritos_p15.RData")
+load("/home/marcelo/Documents/PROYECTO_BI_SENESCYT_2/BDD_FUENTES/VISTAS/inscritos_p15.RData")
 inscritos_p15<-as.data.frame(lapply(inscritos_p15,function(x) if(is.character(x))
   iconv(x,"UTF-8","UTF-8") else x),stringsAsFactors=F)
 
