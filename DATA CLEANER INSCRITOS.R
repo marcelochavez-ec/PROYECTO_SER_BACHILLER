@@ -129,7 +129,7 @@ ins_1<-inscritos_1 %>%
     prd_jornada="SIN REGISTRO",#36
     codigo_parroquia_ue="SIN REGISTRO",#37
     estado_civil="SIN REGISTRO",#38
-    sustentantes=ifelse(recinto_asignado!="NA",1,0)) %>% 
+    efectivos=ifelse(recinto_asignado!="NA",1,0)) %>% 
   select(
     #Variables del estudiante:
     per_id,#1
@@ -173,7 +173,7 @@ ins_1<-inscritos_1 %>%
     prd_jornada,
     codigo_parroquia_ue,
     estado_civil,
-    sustentantes) %>% #31
+    efectivos) %>% #31
   plyr::rename(c("usu_tipo_doc"="tipo_documento",
                  "dpa_genero"="sexo",
                  "usu_nombres"="nombres",
@@ -201,7 +201,7 @@ ins_2<-inscritos_2 %>%
     prd_jornada="SIN REGISTRO",#36
     codigo_parroquia_ue="SIN REGISTRO",#37
     estado_civil="SIN REGISTRO",#38
-    sustentantes=ifelse(recinto_asignado!="NA",1,0)) %>% 
+    efectivos=ifelse(recinto_asignado!="NA",1,0)) %>% 
   select(
     #Variables del estudiante:
     per_id,#1
@@ -245,7 +245,7 @@ ins_2<-inscritos_2 %>%
     prd_jornada,
     codigo_parroquia_ue,
     estado_civil,
-    sustentantes) %>% #31
+    efectivos) %>% #31
   plyr::rename(c("usu_tipo_doc"="tipo_documento",
                  "dpa_genero"="sexo",
                  "usu_nombres"="nombres",
@@ -272,7 +272,7 @@ ins_3<-inscritos_3 %>%
     prq_id_nace="",
     edad=calculo_edad(fecha_nacimiento),
     es_discapacitado="SIN REGISTRO",
-    sustentantes=case_when(
+    efectivos=case_when(
                  ins_estado=="T" & per_id==13 ~ 1,
                  ins_sede_rec_asignado!="NA" & per_id==14 ~ 1)) %>% 
   mutate(domicilio=paste(ins_calle_principal,
@@ -323,7 +323,7 @@ ins_3<-inscritos_3 %>%
     prq_id_nace,#36
     edad,#37
     es_discapacitado,
-    sustentantes) %>% #38
+    efectivos) %>% #38
   plyr::rename(c("ins_autoidentificacion"="autoidentificacion",
                  "ins_nacionalidad"="pueblos_nacionalidades",
                  "ins_tipo_discapacidad"="tipo_discapacidad",
@@ -356,7 +356,7 @@ ins_4<-inscritos_p15 %>%
     codigo_parroquia_ue="SIN REGISTRO",
     prd_jornada="SIN REGISTRO",
     edad=calculo_edad(usu_fecha_nac),
-    sustentantes=ifelse(ins_estado_asigna_sede==1,1,0)) %>%
+    efectivos=ifelse(ins_estado_asigna_sede==1,1,0)) %>%
   mutate(domicilio=paste(ins_calle_principal,
                          ins_barrio_sector,
                          ins_num_casa,
@@ -403,7 +403,7 @@ ins_4<-inscritos_p15 %>%
     nota_abstracta,#36
     prq_id_nace,#37
     edad,
-    sustentantes) %>% #38
+    efectivos) %>% #38
   plyr::rename(c("ins_autoidentificacion"="autoidentificacion",
                  "ins_nacionalidad"="pueblos_nacionalidades",
                  "ins_discapacidad_mayor30"="es_discapacitado",
@@ -539,8 +539,10 @@ inscritos_p2_p15 <- inscritos_p2_p15 %>%
   mutate(rinde_examen=ifelse(is.na(rinde_examen),"NO RINDIERON",rinde_examen)) %>% 
   mutate(rinde_examen=recode(rinde_examen,
                              "M"="RINDIERON",
-                             "N"="RINDIERON")) %>% 
-  mutate(pais_reside=trimws(pais_reside)) %>% 
+                             "N"="RINDIERON",
+                             "SI"="RINDIERON",
+                             "NO"="NO RINDIERON")) %>%
+    mutate(pais_reside=trimws(pais_reside)) %>% 
   mutate(pais_reside=ifelse(is.na(pais_reside),"SIN REGISTRO",
                             pais_reside)) %>% 
   mutate(pais_reside=recode(pais_reside,
@@ -686,7 +688,7 @@ inscritos_p2_p15 <- inscritos_p2_p15 %>%
   mutate(prq_id_nace=trimws(prq_id_nace)) %>%   
   mutate(prq_id_nace=recode(prq_id_nace,"-"="")) %>% 
   select(-i01_reside,-i02_reside) %>% 
-  mutate(sustentantes=ifelse(is.na(sustentantes),0,sustentantes))
+  mutate(efectivos=ifelse(is.na(efectivos),0,efectivos))
 #===============================================================================================
 # Almacenamiento a la BDD PostgreSQL senescyt_bi:
 dbWriteTable(senescyt_bi,"inscritos_totales_p2_p15",
