@@ -189,7 +189,9 @@ ins_1<-inscritos_1 %>%
                  "dpa_telefono"="telefono",
                  "dpa_celular"="movil",
                  "usu_email"="email",
-                 "rinde_enes"="rinde_examen"))
+                 "rinde_enes"="rinde_examen",
+                 "prq_id_reside"="i03_reside",
+                 "prq_id_nace"="i03_nace"))
 
 ins_2<-inscritos_2 %>%
   mutate(#Variables que se crean para identificar al colegio de procedencia:
@@ -261,7 +263,9 @@ ins_2<-inscritos_2 %>%
                  "dpa_telefono"="telefono",
                  "dpa_celular"="movil",
                  "usu_email"="email",
-                 "rinde_enes"="rinde_examen"))
+                 "rinde_enes"="rinde_examen",
+                 "prq_id_reside"="i03_reside",
+                 "prq_id_nace"="i03_nace"))
 
 ins_3<-inscritos_3 %>% 
     mutate(#Variables que se crean para identificar al colegio de procedencia:
@@ -269,7 +273,7 @@ ins_3<-inscritos_3 %>%
     nota_verbal=9999,
     nota_logica=9999,
     nota_abstracta=9999,
-    prq_id_nace="",
+    i03_nace="",
     edad=calculo_edad(fecha_nacimiento),
     es_discapacitado="SIN REGISTRO",
     efectivos=case_when(
@@ -320,7 +324,7 @@ ins_3<-inscritos_3 %>%
     nota_verbal,#33
     nota_logica,#34
     nota_abstracta,#35
-    prq_id_nace,#36
+    i03_nace,#36
     edad,#37
     es_discapacitado,
     efectivos) %>% #38
@@ -332,7 +336,7 @@ ins_3<-inscritos_3 %>%
                  "telefono2"="telefono",
                  "celular"="movil",
                  "ins_poblacion"="escolaridad",
-                 "codigo_parroquia_resid"="prq_id_reside",
+                 "codigo_parroquia_resid"="i03_reside",
                  "cedula"="usu_cc",
                  "cae_nota_enes"="nota_postula",
                  "ins_hogar_bdh"="bdh",
@@ -346,7 +350,7 @@ ins_4<-inscritos_p15 %>%
     nota_verbal=9999,
     nota_logica=9999,
     nota_abstracta=9999,
-    prq_id_nace="",
+    i03_nace="",
     bdh="SIN REGISTRO",
     ced_beneficiario_bdh="SIN REGISTRO",
     pais_nace="SIN REGISTRO",
@@ -356,7 +360,9 @@ ins_4<-inscritos_p15 %>%
     codigo_parroquia_ue="SIN REGISTRO",
     prd_jornada="SIN REGISTRO",
     edad=calculo_edad(usu_fecha_nac),
-    efectivos=ifelse(ins_estado_asigna_sede==1,1,0)) %>%
+    rinde_examen=ifelse(ins_estado_asigna_sede==1,
+                        "RINDIERON","NO RINDIERON"),
+    efectivos=1) %>%
   mutate(domicilio=paste(ins_calle_principal,
                          ins_barrio_sector,
                          ins_num_casa,
@@ -401,7 +407,7 @@ ins_4<-inscritos_p15 %>%
     nota_verbal,#34
     nota_logica,#35
     nota_abstracta,#36
-    prq_id_nace,#37
+    i03_nace,#37
     edad,
     efectivos) %>% #38
   plyr::rename(c("ins_autoidentificacion"="autoidentificacion",
@@ -413,7 +419,7 @@ ins_4<-inscritos_p15 %>%
                  "ins_telefono"="telefono",
                  "ins_celular"="movil",
                  "ins_poblacion"="escolaridad",
-                 "cod_parroquia_reside"="prq_id_reside",
+                 "cod_parroquia_reside"="i03_reside",
                  "usu_tipo_doc"="tipo_documento",
                  "ins_sexo"="sexo",
                  "usu_nombres"="nombres",
@@ -475,8 +481,8 @@ inscritos_p2_p15$periodos<-factor(inscritos_p2_p15$periodos,
                                            "1er. Semestre 2018"))
 #===============================================================================================
 # Join con las BDD de las
-inscritos_p2_p15$i01_reside<-substr(inscritos_p2_p15$prq_id_reside,1,2)
-inscritos_p2_p15$i02_reside<-substr(inscritos_p2_p15$prq_id_reside,1,4)
+inscritos_p2_p15$i01_reside<-substr(inscritos_p2_p15$i03_reside,1,2)
+inscritos_p2_p15$i02_reside<-substr(inscritos_p2_p15$i03_reside,1,4)
 inscritos_p2_p15 <- merge(inscritos_p2_p15,zonas,by=c("i01_reside","i02_reside"),
                           all.x=T)
 #===============================================================================================
@@ -583,10 +589,10 @@ inscritos_p2_p15 <- inscritos_p2_p15 %>%
   mutate(es_discapacitado=ifelse(tipo_discapacidad=="NO PRESENTAN DISCAPACIDAD",
                                  "NO PRESENTAN DISCAPACIDAD",
                                  "PRESENTAN DISCAPACIDAD")) %>% 
-  mutate(prq_id_reside=trimws(prq_id_reside)) %>% 
-  #mutate(prq_id_reside=ifelse(is.na(prq_id_reside),"SIN REGISTRO",prq_id_reside)) %>% 
-  mutate(prq_id_nace=trimws(prq_id_nace)) %>% 
-  #mutate(prq_id_nace=ifelse(is.na(prq_id_nace),"SIN REGISTRO",prq_id_nace)) %>% 
+  mutate(i03_reside=trimws(i03_reside)) %>% 
+  #mutate(i03_reside=ifelse(is.na(i03_reside),"SIN REGISTRO",i03_reside)) %>% 
+  mutate(i03_nace=trimws(i03_nace)) %>% 
+  #mutate(i03_nace=ifelse(is.na(i03_nace),"SIN REGISTRO",i03_nace)) %>% 
   mutate(grado_discapacidad=trimws(grado_discapacidad)) %>% 
   mutate(grado_discapacidad=ifelse(is.na(grado_discapacidad),
                                    "NO PRESENTAN DISCAPACIDAD",
@@ -683,12 +689,14 @@ inscritos_p2_p15 <- inscritos_p2_p15 %>%
   mutate(telefono=ifelse(is.na(telefono),"SIN REGISTRO",telefono)) %>% 
   mutate(movil=trimws(movil)) %>% 
   mutate(movil=ifelse(is.na(movil),"SIN REGISTRO",movil)) %>% 
-  mutate(prq_id_reside=trimws(prq_id_reside)) %>%   
-  mutate(prq_id_reside=recode(prq_id_reside,"-"="")) %>% 
-  mutate(prq_id_nace=trimws(prq_id_nace)) %>%   
-  mutate(prq_id_nace=recode(prq_id_nace,"-"="")) %>% 
+  mutate(i03_reside=trimws(i03_reside)) %>%   
+  mutate(i03_reside=recode(i03_reside,"-"="")) %>% 
+  mutate(i03_nace=trimws(i03_nace)) %>%   
+  mutate(i03_nace=recode(i03_nace,"-"="")) %>% 
   select(-i01_reside,-i02_reside) %>% 
-  mutate(efectivos=ifelse(is.na(efectivos),0,efectivos))
+  mutate(efectivos=ifelse(is.na(efectivos),0,efectivos),
+         total_inscritos=1) %>% 
+  mutate_if(is.character, funs(replace(., is.na(.), "SIN REGISTRO")))
 #===============================================================================================
 # Almacenamiento a la BDD PostgreSQL senescyt_bi:
 dbWriteTable(senescyt_bi,"inscritos_totales_p2_p15",
