@@ -693,7 +693,9 @@ inscritos_p2_p15 <- inscritos_p2_p15 %>%
   mutate(i03_reside=recode(i03_reside,"-"="")) %>% 
   mutate(i03_nace=trimws(i03_nace)) %>%   
   mutate(i03_nace=recode(i03_nace,"-"="")) %>% 
-  select(-i01_reside,-i02_reside) %>% 
+  select(-i01_reside,
+         -i02_reside,
+         -grado_discapacidad_aux) %>% 
   mutate(efectivos=ifelse(is.na(efectivos),0,efectivos),
          total_inscritos=1) %>% 
   mutate_if(is.character, funs(replace(., is.na(.), "SIN REGISTRO")))
